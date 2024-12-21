@@ -8,9 +8,9 @@ class PriceMachine:
     def __init__(self):
         self.data = []
         self.result = ''
-        self.name_length = 25  # Устанавливаем максимальную длину названия товара для выравнивания в таблице
+        self.name_length = 25
 
-    def load_prices(self, file_path='dir_price'):
+    def load_prices(self, file_path='.'):
         """
         Сканирует указанный каталог. Ищет файлы со словом 'price' в названии.
         В файле ищет столбцы с названием товара, ценой и весом.
@@ -28,7 +28,6 @@ class PriceMachine:
             фасовка
         """
 
-        # Сканируем каталог и находим файлы с нужным именем
         files = [os.path.join(file_path, f) for f in os.listdir(file_path) if 'price' in f and f.endswith('.csv')]
 
         for file in files:
@@ -45,7 +44,6 @@ class PriceMachine:
                             weight = float(row[weight_idx].strip())
                             price_per_kg = price / weight
 
-                            # Обновляем максимальную длину названия товара
                             self.name_length = max(len(product_name), self.name_length)
 
                             self.data.append({
@@ -78,26 +76,49 @@ class PriceMachine:
         """
         result = '''
         <!DOCTYPE html>
-        <html>
+        <html lang="ru">
         <head>
-            <title>Позиции продуктов</title>
+            <meta charset="UTF-8">
+            <title>Анализ цен</title>
+            <style>
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                th, td {
+                    padding: 8px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                }
+                tr:nth-child(even) {
+                    background-color: #f2f2f2;
+                }
+                th {
+                    background-color: #4CAF50;
+                    color: white;
+                }
+            </style>
         </head>
         <body>
+            <h1>Результаты анализа цен</h1>
             <table>
-                <tr>
-                    <th>Номер</th>
-                    <th>Название</th>
-                    <th>Цена</th>
-                    <th>Фасовка</th>
-                    <th>Файл</th>
-                    <th>Цена за кг.</th>
-                </tr>
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Наименование</th>
+                        <th>Цена</th>
+                        <th>Вес</th>
+                        <th>Файл</th>
+                        <th>Цена за кг.</th>
+                    </tr>
+                </thead>
+                <tbody>
         '''
 
-        for idx, item in enumerate(sorted(self.data, key=lambda x: x['price_per_kg'])):
+        for idx, item in enumerate(sorted(self.data, key=lambda x: x['price_per_kg']), start=1):
             result += f'''
                         <tr>
-                            <td>{idx + 1}</td>
+                            <td>{idx}</td>
                             <td>{item['product_name'][:self.name_length]:<{self.name_length}}</td>
                             <td>{item['price']:.2f}</td>
                             <td>{item['weight']:.2f}</td>
@@ -106,10 +127,12 @@ class PriceMachine:
                         </tr>
                     '''
         result += '''
-                    </table>
-                </body>
-                </html>
-                '''
+                </tbody>
+            </table>
+        </body>
+        </html>
+        '''
+
         with open(fname, 'w', encoding='utf-8') as f:
             f.write(result)
 
